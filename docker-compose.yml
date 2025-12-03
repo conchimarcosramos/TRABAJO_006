@@ -1,0 +1,101 @@
+# Elimino version: '3.8'
+# ---------------------------------------------------------------------------
+# docker-compose.yml
+# Propósito: orquesta varios contenedores para un entorno de desarrollo local.
+# - Define los servicios (web, db), volúmenes persistentes y la red de la app.
+# - No cambia la configuración de producción; está pensado para desarrollo.
+# ---------------------------------------------------------------------------
+
+services:
+  # -------------------------------------------------------------------------
+  # Servicio: web
+  # Contenedor que sirve la aplicación PHP mediante Apache.
+  # Explicación de los campos principales:
+  # - image: imagen base que contiene PHP 8.2 y Apache.
+  # - container_name: nombre fácil para identificar el contenedor en local.
+  # - ports: mapea el puerto 80 del contenedor al 8080 del host (acceso: http://localhost:8080).
+  # - volumes: monta el código fuente y la configuración de Apache desde el host.
+  # - environment: variables de entorno para la configuración del contenedor.
+  # - depends_on: indica dependencias de arranque (no espera a 'ready', solo ordena inicio).
+  # - networks: red virtual donde se comunican los servicios.
+  # - command: comando de inicio adicional; aquí se instalan dependencias y extensiones.
+  # -------------------------------------------------------------------------
+  web:
+    image: php:8.2-apache
+    container_name: php-apache-dev
+    ports:
+      - "8080:80"
+    volumes:
+      # Monta la carpeta local `./app` en el directorio servible de Apache
+      - ./app:/var/www/html
+      # Reemplaza la configuración por defecto de Apache con una versión local
+      - ./config/apache.conf:/etc/apache2/sites-available/000-default.conf
+    environment:
+      # Variable usada por la configuración para apuntar al document root
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    depends_on:
+      # Garantiza que Docker intente arrancar la DB antes del web
+      - db
+    networks:
+      - dev-network
+    # El comando realiza una breve preparación del contenedor antes de lanzar Apache:
+    # - actualiza paquetes, instala dependencias del sistema (libpq-dev)
+    # - compila/instala la extensión PDO para PostgreSQL
+    # - lanza apache2-foreground para que Apache corra en primer plano
+    command: >
+      sh -c "apt-get update && apt-get install -y 
+      libpq-dev && 
+      docker-php-ext-install pdo pdo_pgsql && 
+      apache2-foreground"
+
+  # -------------------------------------------------------------------------
+  # Servicio: db (PostgreSQL)
+  # Contenedor que ejecuta PostgreSQL 16 en versión Alpine (ligera).
+  # Campos clave:
+  # - image: versión de Postgres.
+  # - environment: credenciales y nombre de la BD por defecto.
+  # - ports: expone 5432 para acceso desde el host (útil en desarrollo).
+  # - volumes: volumen persistente para datos y scripts de inicialización.
+  # - healthcheck: comprueba que la BD esté lista para aceptar conexiones.
+  # -------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: postgres-dev
+    hostname: db
+    environment:
+      # Usuario de la BD (evitar estas credenciales en producción)
+      POSTGRES_USER: admin
+      # Contraseña de ejemplo para desarrollo
+      POSTGRES_PASSWORD: 123456789
+      # Nombre de la base de datos creada al inicializar
+      POSTGRES_DB: formulario_db
+    ports:
+      - "5434:5432"
+    volumes:
+      # Volumen Docker para persistir los datos entre reinicios
+      - postgres_data:/var/lib/postgresql/data
+      # Scripts SQL/SH en ./init-db se ejecutan al primer arranque
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - dev-network
+    healthcheck:
+      # Utiliza pg_isready para comprobar disponibilidad de PostgreSQL
+      test: ["CMD-SHELL", "pg_isready -U developer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# -----------------------------------------------------------------------------
+# Volúmenes
+# - postgres_data: volumen nombrado que persiste los datos de Postgres.
+# -----------------------------------------------------------------------------
+volumes:
+  postgres_data:
+
+# -----------------------------------------------------------------------------
+# Redes
+# - dev-network: red bridge por defecto para la comunicación entre contenedores.
+# -----------------------------------------------------------------------------
+networks:
+  dev-network:
+    driver: bridge
