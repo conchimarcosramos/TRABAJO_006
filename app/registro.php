@@ -1,10 +1,6 @@
 <?php
 session_start();
-
-// "Base de datos" de usuarios en sesión (demo)
-if (!isset($_SESSION['users'])) {
-    $_SESSION['users'] = [];
-}
+require_once __DIR__ . '/config/Database.php';
 
 $errors = [];
 
@@ -18,23 +14,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (strlen($username) < 3) {
         $errors[] = 'El nombre de usuario debe tener al menos 3 caracteres.';
     }
+    if (preg_match('/\s/', $username)) {
+        $errors[] = 'El nombre de usuario no puede contener espacios.';
+    }
     if (strlen($password) < 6) {
         $errors[] = 'La contraseña debe tener al menos 6 caracteres.';
     }
     if ($password !== $password2) {
         $errors[] = 'Las contraseñas no coinciden.';
     }
-    if (isset($_SESSION['users'][$username])) {
-        $errors[] = 'El nombre de usuario ya existe.';
-    }
 
     if (!$errors) {
-        // Guardamos usuario con contraseña hasheada (solo demo)
-        $_SESSION['users'][$username] = password_hash($password, PASSWORD_DEFAULT);
-        $_SESSION['success'] = 'Registro correcto. Ya puedes iniciar sesión.';
-        header('Location: index.php');
-        exit;
-    } else {
+        $db = new Database();
+        $pdo = $db->getConnection();
+        if (!$pdo) {
+            $_SESSION['error'] = 'Error de conexión con la base de datos.';
+            header('Location: registro.php');
+            exit;
+        }
+
+        try {
+            // Comprobar si ya existe el usuario
+            $stmt = $pdo->prepare('SELECT id FROM users WHERE username = :username LIMIT 1');
+            $stmt->execute(['username' => $username]);
+            if ($stmt->fetch()) {
+                $errors[] = 'El nombre de usuario ya existe.';
+            } else {
+                // Insertar usuario con contraseña hasheada
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $insert = $pdo->prepare('INSERT INTO users (username, password_hash) VALUES (:username, :hash)');
+                $insert->execute(['username' => $username, 'hash' => $hash]);
+                $_SESSION['success'] = 'Registro correcto. Ya puedes iniciar sesión.';
+                header('Location: index.php');
+                exit;
+            }
+        } catch (Exception $e) {
+            error_log('Registro error: ' . $e->getMessage());
+            $_SESSION['error'] = 'Error interno al guardar usuario. Contacta con el administrador.';
+            header('Location: registro.php');
+            exit;
+        }
+    }
+
+    // Si hay errores de validación
+    if (!empty($errors)) {
         $_SESSION['error'] = implode(' ', $errors);
         header('Location: registro.php');
         exit;

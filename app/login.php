@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/config/Database.php';
 
 // Aseguramos estructura de usuarios en sesión (demo)
 if (!isset($_SESSION['users'])) {
@@ -18,18 +19,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Comprobar credenciales contra la "base de datos" en sesión
-    if (!isset($_SESSION['users'][$username]) || !password_verify($password, $_SESSION['users'][$username])) {
-        $_SESSION['error'] = 'Credenciales inválidas.';
+    $db = new Database();
+    $pdo = $db->getConnection();
+    if (!$pdo) {
+        $_SESSION['error'] = 'Error de conexión con la base de datos.';
         header('Location: login.php');
         exit;
     }
 
-    // Guardar usuario en sesión (logged in)
-    $_SESSION['username'] = $username;
-    $_SESSION['success'] = 'Has iniciado sesión correctamente.';
-    header('Location: index.php');
-    exit;
+    try {
+        $stmt = $pdo->prepare('SELECT id, password_hash FROM users WHERE username = :username LIMIT 1');
+        $stmt->execute(['username' => $username]);
+        $user = $stmt->fetch();
+        if (!$user || !password_verify($password, $user['password_hash'])) {
+            $_SESSION['error'] = 'Credenciales inválidas.';
+            header('Location: login.php');
+            exit;
+        }
+
+        // Login correcto: guardamos username en sesión
+        $_SESSION['username'] = $username;
+        $_SESSION['success'] = 'Has iniciado sesión correctamente.';
+        header('Location: index.php');
+        exit;
+    } catch (Exception $e) {
+        error_log('Login error: ' . $e->getMessage());
+        $_SESSION['error'] = 'Error de conexión. Inténtalo más tarde.';
+        header('Location: login.php');
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
