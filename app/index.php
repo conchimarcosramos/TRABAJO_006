@@ -13,7 +13,6 @@ session_start();
 <body>
     <div class="container">
         <h1>Bienvenido a la Aplicación de Gestión</h1>
-        <p>Formulario de acceso</p>
 
         <!-- Mensajes guardados en sesión: success / error -->
         <?php if (!empty($_SESSION['success'])): ?>
@@ -28,24 +27,23 @@ session_start();
 
         <!-- Comprobamos si el usuario está autenticado -->
         <?php if (!empty($_SESSION['username'])): ?>
-            <!-- Usuario autenticado: mostrar dashboard y logout -->
-            <p>Has iniciado sesión como <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
-            <p>
-                <a href="dashboard.php" class="btn">Ir al área interna</a>
-                <a href="logout.php" class="btn btn-logout">Cerrar Sesión</a>
-            </p>
+            <div class="card">
+                <h2>Hola, <?= htmlspecialchars($_SESSION['username']); ?></h2>
+                <p>Has iniciado sesión correctamente. Usa las acciones disponibles abajo.</p>
+                <p>
+                    <a class="btn btn-primary" href="dashboard.php">Ir al panel</a>
+                    <a class="btn btn-outline" href="logout.php">Cerrar sesión</a>
+                </p>
+            </div>
         <?php else: ?>
-            <!-- Usuario no autenticado: mostrar login/registro -->
-            <p>Para acceder al área interna regístrate o accede como usuario registrado</p>
-            <p>
-                <a href="login.php" class="btn">Iniciar Sesión</a>
-                <a href="registro.php" class="btn">Regístrate</a>
-            </p>
+            <div class="card">
+                <p>Aún no has iniciado sesión. Accede o regístrate para comenzar.</p>
+                <p>
+                    <a class="btn btn-primary" href="login.php">Iniciar sesión</a>
+                    <a class="btn btn-outline" href="registro.php">Registrarse</a>
+                </p>
+            </div>
         <?php endif; ?>
-
-        <hr>
-        <p>Si quieres acceder al formulario de contacto pulsa el siguiente enlace:</p>
-        <p><a href="contacto.php" class="btn">Formulario de Contacto</a></p>
     </div>
 </body>
 </html>

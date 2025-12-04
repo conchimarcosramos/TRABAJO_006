@@ -12,21 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password2 = $_POST['password2'] ?? '';
 
     // Validaciones básicas
-    if (strlen($username) < 3) {
-        $errors[] = 'El nombre de usuario debe tener al menos 3 caracteres.';
-    }
-    if (preg_match('/\s/', $username)) {
-        $errors[] = 'El nombre de usuario no puede contener espacios.';
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Introduce un email válido.';
-    }
-    if (strlen($password) < 6) {
-        $errors[] = 'La contraseña debe tener al menos 6 caracteres.';
-    }
-    if ($password !== $password2) {
-        $errors[] = 'Las contraseñas no coinciden.';
-    }
+    if (strlen($username) < 3) { $errors[] = 'El nombre de usuario debe tener al menos 3 caracteres.'; }
+    if (preg_match('/\s/', $username)) { $errors[] = 'El nombre de usuario no puede contener espacios.'; }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = 'Introduce un email válido.'; }
+    if (strlen($password) < 6) { $errors[] = 'La contraseña debe tener al menos 6 caracteres.'; }
+    if ($password !== $password2) { $errors[] = 'Las contraseñas no coinciden.'; }
 
     if (!$errors) {
         $db = new Database();
@@ -38,30 +28,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
-            // Comprobar si ya existe username o email
+            // Comprobar si ya existe el usuario o el email
             $stmt = $pdo->prepare('SELECT id FROM users WHERE username = :username OR email = :email LIMIT 1');
             $stmt->execute(['username' => $username, 'email' => $email]);
             if ($stmt->fetch()) {
-                $_SESSION['error'] = 'El nombre de usuario o el email ya existen.';
-                header('Location: registro.php');
-                exit;
-            }
-
-            // Insertar usuario con email y contraseña hasheada
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $insert = $pdo->prepare('INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :hash)');
-            $ok = $insert->execute(['username' => $username, 'email' => $email, 'hash' => $hash]);
-
-            if ($ok && $insert->rowCount() > 0) {
-                $_SESSION['success'] = 'Registro correcto. Ya puedes iniciar sesión.';
-                header('Location: index.php');
-                exit;
+                $errors[] = 'El nombre de usuario o el email ya existen.';
             } else {
-                $err = $insert->errorInfo();
-                error_log('[registro] Insert failed: ' . json_encode($err));
-                $_SESSION['error'] = 'Error al guardar usuario. Revisa logs.';
-                header('Location: registro.php');
-                exit;
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $insert = $pdo->prepare('INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :hash)');
+                $ok = $insert->execute(['username' => $username, 'email' => $email, 'hash' => $hash]);
+
+                if ($ok) {
+                    $_SESSION['success'] = 'Registro correcto. Ya puedes iniciar sesión.';
+                    header('Location: index.php');
+                    exit;
+                } else {
+                    $err = $insert->errorInfo();
+                    error_log('[registro] Insert failed: ' . json_encode($err));
+                    $_SESSION['error'] = 'Error interno al guardar usuario. Contacta con el administrador.';
+                    header('Location: registro.php');
+                    exit;
+                }
             }
         } catch (PDOException $e) {
             error_log('[registro] PDOException: ' . $e->getMessage());
@@ -94,19 +81,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
 
-    <form action="registro.php" method="post" autocomplete="off">
-        <label for="username">Usuario:</label>
-        <input id="username" name="username" type="text" required>
-        <label for="email">Email:</label>
-        <input id="email" name="email" type="email" required>
-        <label for="password">Contraseña:</label>
-        <input id="password" name="password" type="password" required>
-        <label for="password2">Repetir contraseña:</label>
-        <input id="password2" name="password2" type="password" required>
-        <button class="btn" type="submit">Registrar</button>
-    </form>
+    <?php if (!empty($_SESSION['success'])): ?>
+        <div class="message success"><?= htmlspecialchars($_SESSION['success']) ?></div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
 
-    <p><a href="index.php">Volver</a></p>
+    <div class="card">
+        <form action="registro.php" method="post" autocomplete="off">
+            <label for="username">Usuario:</label>
+            <input id="username" name="username" type="text" required>
+            <label for="email">Email:</label>
+            <input id="email" name="email" type="email" required>
+            <label for="password">Contraseña:</label>
+            <input id="password" name="password" type="password" required>
+            <label for="password2">Repetir contraseña:</label>
+            <input id="password2" name="password2" type="password" required>
+            <p style="margin-top:12px;">
+                <button class="btn btn-success" type="submit">Registrar</button>
+                <a class="btn btn-outline" href="index.php">Volver</a>
+            </p>
+        </form>
+    </div>
 </div>
 </body>
 </html>
