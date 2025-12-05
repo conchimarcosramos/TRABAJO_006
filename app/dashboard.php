@@ -25,11 +25,15 @@ if (empty($_SESSION['username'])) {
 <div class="card">
     <h2>Panel</h2>
     <p>Contenido del panel...</p>
-
-    <!-- Añadir botón para ver listado de usuarios -->
     <p>
         <a class="btn btn-primary" href="listar_usuarios.php">Ver usuarios</a>
-        <!-- ...otros botones existentes... -->
+        <a class="btn btn-primary" href="listar_alumnos.php">Ver alumnos</a>
+        <a class="btn btn-primary" href="listar_cursos.php">Ver cursos</a>
+    </p>
+    <p>
+        <a class="btn btn-success" href="registro_alumnos.php">Registrar alumno</a> <!-- confirmado -->
+        <a class="btn btn-success" href="registro_cursos.php">Registrar curso</a>
+        <a class="btn btn-outline" href="index.php">Volver</a>
     </p>
 </div>
 </body>

@@ -49,6 +49,17 @@ try {
         exit;
     }
 
+    // Detectar si la columna 'role' existe en la tabla users
+    $colStmt = $pdo->prepare("
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name = 'users'
+    ");
+    $colStmt->execute();
+    $columns = $colStmt->fetchAll(PDO::FETCH_COLUMN);
+    $hasRole = in_array('role', $columns, true);
+
     // Parámetros de paginación
     $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT, [
         'options' => ['default' => 1, 'min_range' => 1]
@@ -60,12 +71,20 @@ try {
     $totalStmt = $pdo->query('SELECT COUNT(*) FROM users');
     $totalUsers = (int) $totalStmt->fetchColumn();
 
-    // Obtener usuarios
-    $stmt = $pdo->prepare('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset');
+    // Construir SELECT según columnas disponibles
+    $selectCols = 'id, username, email' . ($hasRole ? ', role' : '') . ', created_at';
+
+    $stmt = $pdo->prepare("
+        SELECT $selectCols
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT :limit OFFSET :offset
+    ");
     $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $users = $stmt->fetchAll();
+
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('DB_QUERY_ERROR: ' . $e->getMessage());

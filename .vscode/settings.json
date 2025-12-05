@@ -13,5 +13,6 @@
             "username": "admin",
             "password": "admin123"
         }
-    ]
+    ],
+    "editor.accessibilitySupport": "on"
 }
