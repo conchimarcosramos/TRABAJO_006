@@ -32,36 +32,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare('SELECT id FROM users WHERE username = :username OR email = :email LIMIT 1');
             $stmt->execute(['username' => $username, 'email' => $email]);
             if ($stmt->fetch()) {
-                $errors[] = 'El nombre de usuario o el email ya existen.';
-            } else {
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $insert = $pdo->prepare('INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :hash)');
-                $ok = $insert->execute(['username' => $username, 'email' => $email, 'hash' => $hash]);
+                $_SESSION['error'] = 'El nombre de usuario o el email ya existen.';
+                header('Location: registro.php'); exit;
+            }
 
-                if ($ok) {
-                    $_SESSION['success'] = 'Registro correcto. Ya puedes iniciar sesión.';
-                    header('Location: index.php');
-                    exit;
-                } else {
-                    $err = $insert->errorInfo();
-                    error_log('[registro] Insert failed: ' . json_encode($err));
-                    $_SESSION['error'] = 'Error interno al guardar usuario. Contacta con el administrador.';
-                    header('Location: registro.php');
-                    exit;
-                }
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $insert = $pdo->prepare('INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :hash)');
+            $ok = $insert->execute(['username' => $username, 'email' => $email, 'hash' => $hash]);
+
+            if ($ok) {
+                $_SESSION['success'] = 'Registro correcto. Ya puedes iniciar sesión.';
+                header('Location: index.php'); exit;
+            } else {
+                $err = $insert->errorInfo();
+                error_log('[registro] Insert failed: ' . json_encode($err));
+                $_SESSION['error'] = 'Error interno al guardar usuario. Contacta con el administrador.';
+                header('Location: registro.php'); exit;
             }
         } catch (PDOException $e) {
             error_log('[registro] PDOException: ' . $e->getMessage());
             $_SESSION['error'] = 'Error interno al guardar usuario. Contacta con el administrador.';
-            header('Location: registro.php');
-            exit;
+            header('Location: registro.php'); exit;
         }
     }
 
     if (!empty($errors)) {
         $_SESSION['error'] = implode(' ', $errors);
-        header('Location: registro.php');
-        exit;
+        header('Location: registro.php'); exit;
     }
 }
 ?>
@@ -70,6 +67,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Registro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts: Montserrat, Roboto, Open Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>

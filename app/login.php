@@ -8,8 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($username === '' || $password === '') {
         $_SESSION['error'] = 'Usuario y contraseña son obligatorios.';
-        header('Location: login.php');
-        exit;
+        header('Location: login.php'); exit;
     }
 
     try {
@@ -17,8 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo = $db->getConnection();
         if (!$pdo) {
             $_SESSION['error'] = 'Error de conexión con la base de datos.';
-            header('Location: login.php');
-            exit;
+            header('Location: login.php'); exit;
         }
 
         $stmt = $pdo->prepare('SELECT id, password_hash FROM users WHERE username = :username LIMIT 1');
@@ -26,19 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $_SESSION['error'] = 'Credenciales inválidas.';
-            header('Location: login.php');
-            exit;
+            header('Location: login.php'); exit;
         }
 
         $_SESSION['username'] = $username;
         $_SESSION['success'] = 'Has iniciado sesión correctamente.';
-        header('Location: index.php');
-        exit;
+        header('Location: index.php'); exit;
     } catch (Exception $e) {
         error_log('[login] ' . $e->getMessage());
         $_SESSION['error'] = 'Error de conexión. Inténtalo más tarde.';
-        header('Location: login.php');
-        exit;
+        header('Location: login.php'); exit;
     }
 }
 ?>
@@ -47,6 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Iniciar Sesión</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts: Montserrat, Roboto, Open Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>

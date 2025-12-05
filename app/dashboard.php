@@ -22,5 +22,15 @@ if (empty($_SESSION['username'])) {
     <p><a href="logout.php" class="btn btn-logout">Cerrar sesión</a></p>
     <p><a href="index.php" class="btn">Volver a inicio</a></p>
 </div>
+<div class="card">
+    <h2>Panel</h2>
+    <p>Contenido del panel...</p>
+
+    <!-- Añadir botón para ver listado de usuarios -->
+    <p>
+        <a class="btn btn-primary" href="listar_usuarios.php">Ver usuarios</a>
+        <!-- ...otros botones existentes... -->
+    </p>
+</div>
 </body>
 </html>

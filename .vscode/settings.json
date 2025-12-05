@@ -1,14 +1,17 @@
 {
     "sqltools.connections": [
+
         {
             "ssh": "Disabled",
             "previewLimit": 50,
-            "server": "localhost",
+            "server": "127.0.0.1",
             "port": 5434,
+            "askForPassword": true,
             "driver": "PostgreSQL",
             "name": "formulario_db",
             "database": "formulario_db",
-            "username": "admin"
+            "username": "admin",
+            "password": "admin123"
         }
     ]
 }

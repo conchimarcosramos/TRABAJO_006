@@ -31,14 +31,13 @@ class Database {
 
         try {
             $dsn = sprintf('pgsql:host=%s;port=%s;dbname=%s;', $this->host, $this->port, $this->db);
-
             $this->conn = new PDO($dsn, $this->user, $this->password, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
 
-            // Crear tabla `users` si no existe, con columna email
+            // Crear tabla `users` si no existe (con campo email)
             $create = "
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
