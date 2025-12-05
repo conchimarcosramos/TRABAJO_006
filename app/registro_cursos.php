@@ -16,6 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim($_POST['nombre'] ?? '');
     $descripcion = trim($_POST['descripcion'] ?? '');
 
+    // logging del POST (solo en dev)
+    @mkdir(__DIR__ . '/logs', 0755, true);
+    @file_put_contents(__DIR__ . '/logs/registro_cursos_post.log', date('c') . ' - POST: ' . json_encode(['nombre' => $nombre, 'desc_len' => strlen($descripcion)]) . PHP_EOL, FILE_APPEND);
+
     if ($nombre === '' || mb_strlen($nombre) < 2) {
         $errors[] = 'El nombre del curso debe tener al menos 2 caracteres.';
     }
@@ -30,29 +34,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
-            // Comprobar duplicados (case-insensitive)
             $chk = $pdo->prepare('SELECT id FROM cursos WHERE lower(nombre) = lower(:nombre) LIMIT 1');
             $chk->execute(['nombre' => $nombre]);
             if ($chk->fetch()) {
                 $_SESSION['error'] = 'Ya existe un curso con ese nombre.';
-                header('Location: registro_cursos.php'); exit;
+                header('Location: registro_cursos.php');
+                exit;
             }
 
             $stmt = $pdo->prepare('INSERT INTO cursos (nombre, descripcion) VALUES (:nombre, :descripcion)');
             $ok = $stmt->execute(['nombre' => $nombre, 'descripcion' => $descripcion]);
 
             if ($ok) {
+                // confirmar rows y log
+                $rows = $stmt->rowCount();
+                error_log('[registro_cursos] Insert OK. rows = ' . $rows);
                 $_SESSION['success'] = 'Curso creado correctamente.';
                 header('Location: listar_cursos.php');
                 exit;
             } else {
                 $err = $stmt->errorInfo();
                 error_log('[registro_cursos] Insert failed: ' . json_encode($err));
+                @file_put_contents(__DIR__ . '/logs/registro_cursos_errors.log', date('c') . ' - Insert failed: ' . json_encode($err) . PHP_EOL, FILE_APPEND);
                 $_SESSION['error'] = 'Error interno al guardar el curso. Contacta con el administrador.';
-                header('Location: registro_cursos.php'); exit;
+                header('Location: registro_cursos.php');
+                exit;
             }
         } catch (PDOException $e) {
-            error_log('[registro_cursos] PDOException: ' . $e->getMessage());
+            error_log('[registro_cursos] PDOException: ' . $e->getMessage() . ' code=' . $e->getCode());
+            @file_put_contents(__DIR__ . '/logs/registro_cursos_exceptions.log', date('c') . ' - ' . $e->getMessage() . ' code=' . $e->getCode() . PHP_EOL, FILE_APPEND);
             $_SESSION['error'] = 'Error interno al guardar el curso. Contacta con el administrador.';
             header('Location: registro_cursos.php');
             exit;

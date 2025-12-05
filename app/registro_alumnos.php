@@ -30,6 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $curso_id = filter_input(INPUT_POST, 'curso_id', FILTER_VALIDATE_INT) ?: null;
 
+    // logging del POST
+    @mkdir(__DIR__ . '/logs', 0755, true);
+    @file_put_contents(__DIR__ . '/logs/registro_alumnos_post.log', date('c') . ' - POST: ' . json_encode(['nombre'=>$nombre, 'email'=>$email, 'curso_id'=>$curso_id]) . PHP_EOL, FILE_APPEND);
+
     if ($nombre === '' || mb_strlen($nombre) < 2) { $errors[] = 'El nombre del alumno debe tener al menos 2 caracteres.'; }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = 'Introduce un email válido.'; }
 
@@ -59,16 +63,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ok = $istmt->execute(['nombre' => $nombre, 'email' => $email, 'curso_id' => $curso_id]);
 
             if ($ok) {
+                error_log('[registro_alumnos] Insert OK. rows=' . $istmt->rowCount());
                 $_SESSION['success'] = 'Alumno registrado correctamente.';
                 header('Location: listar_alumnos.php'); exit;
             } else {
                 $err = $istmt->errorInfo();
                 error_log('[registro_alumnos] Insert failed: ' . json_encode($err));
+                @file_put_contents(__DIR__ . '/logs/registro_alumnos_errors.log', date('c') . ' - Insert failed: ' . json_encode($err) . PHP_EOL, FILE_APPEND);
                 $_SESSION['error'] = 'Error interno al guardar el alumno. Contacta con el administrador.';
                 header('Location: registro_alumnos.php'); exit;
             }
         } catch (PDOException $e) {
-            error_log('[registro_alumnos] PDOException: ' . $e->getMessage());
+            error_log('[registro_alumnos] PDOException: ' . $e->getMessage() . ' code=' . $e->getCode());
+            @file_put_contents(__DIR__ . '/logs/registro_alumnos_exceptions.log', date('c') . ' - ' . $e->getMessage() . ' code=' . $e->getCode() . PHP_EOL, FILE_APPEND);
             $_SESSION['error'] = 'Error interno al guardar el alumno. Contacta con el administrador.';
             header('Location: registro_alumnos.php'); exit;
         }
