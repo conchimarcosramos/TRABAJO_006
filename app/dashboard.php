@@ -54,7 +54,8 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style_2.css">
+<link rel="stylesheet" href="css/style_3.css">
 </head>
 <body>
 <div class="container">
@@ -75,21 +76,21 @@ try {
         <p><strong>Rol:</strong> <?= htmlspecialchars($role) ?></p>
     </div>
 
-    <h3>Estadísticas</h3>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:20px;">
-        <div class="card" style="text-align:center;">
-            <h4 style="margin:0 0 10px 0; color:#007bff;">Alumnos</h4>
-            <p style="font-size:2em; font-weight:bold; margin:0;"><?= $totalAlumnos ?></p>
-        </div>
-        <div class="card" style="text-align:center;">
-            <h4 style="margin:0 0 10px 0; color:#28a745;">Cursos</h4>
-            <p style="font-size:2em; font-weight:bold; margin:0;"><?= $totalCursos ?></p>
-        </div>
-        <div class="card" style="text-align:center;">
-            <h4 style="margin:0 0 10px 0; color:#6c757d;">Usuarios</h4>
-            <p style="font-size:2em; font-weight:bold; margin:0;"><?= $totalUsuarios ?></p>
-        </div>
+   <h3>Estadísticas</h3>
+<div class="stats-grid">
+    <div class="card card-alumnos">
+        <h4>Alumnos</h4>
+        <p><?= $totalAlumnos ?></p>
     </div>
+    <div class="card card-cursos">
+        <h4>Cursos</h4>
+        <p><?= $totalCursos ?></p>
+    </div>
+    <div class="card card-usuarios">
+        <h4>Usuarios</h4>
+        <p><?= $totalUsuarios ?></p>
+    </div>
+</div>
 
     <?php if (!empty($ultimosAlumnos)): ?>
         <h3>Últimos alumnos registrados</h3>

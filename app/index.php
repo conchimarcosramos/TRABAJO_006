@@ -17,7 +17,7 @@ session_start();
 </head>
 <body>
     <div class="container">
-        <h1>Bienvenido a la Aplicación</h1>
+        <h1>Acceso a nuestra Intranet</h1>
         <?php if (!empty($_SESSION['success'])): ?>
             <div class="message success"><?= htmlspecialchars($_SESSION['success']) ?></div>
             <?php unset($_SESSION['success']); ?>
@@ -37,7 +37,7 @@ session_start();
             </div>
         <?php else: ?>
             <div class="card">
-                <p>Aún no has iniciado sesión. Accede o regístrate para comenzar.</p>
+                <p>Accede o Regístrate</p>
                 <p>
                     <a class="btn btn-primary" href="login.php">Iniciar sesión</a>
                     <a class="btn btn-outline" href="registro.php">Registrarse</a>

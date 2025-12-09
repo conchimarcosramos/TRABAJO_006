@@ -1,0 +1,37 @@
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: 0 6px 18px rgba(95,107,115,0.04);
+    text-align: center;
+}
+
+.card h4 {
+    margin: 0 0 10px 0;
+}
+
+.card p {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0;
+}
+
+.card-alumnos h4 {
+    color: #007bff;
+}
+
+.card-cursos h4 {
+    color: #28a745;
+}
+
+.card-usuarios h4 {
+    color: #6c757d;
+}
