@@ -1,0 +1,190 @@
+/* style.css
+   Estilos extraídos de app/index.php
+   Ubicación: app/css/style.css
+*/
+
+/* Paleta:
+   --pink: #F24987
+   --light-gray: #D9D9D9
+   --slate: #5F6B73
+   --lime: #B2BF4B
+   --charcoal: #262626
+*/
+
+:root{
+    --blue: #465573;
+    --light-gray: #D9D9D9;
+    --slate: #5F6B73;
+    --lime: #B2BF4B;
+    --charcoal: #262626;
+    --white: #ffffff;
+
+    --font-sans: "Roboto", "Open Sans", Arial, sans-serif;
+    --font-heading: "Montserrat", "Roboto", "Open Sans", sans-serif;
+}
+
+/* Global etc. (completo) */
+*{box-sizing:border-box}
+html,body{
+    height:100%;
+    margin:0;
+    font-family: var(--font-sans);
+    background: linear-gradient(180deg, var(--light-gray) 0%, #f3f3f3 100%);
+    color:var(--charcoal);
+}
+
+/* Contenedor principal */
+.container{
+    max-width:960px;
+    margin:60px auto;
+    background:#8F9FBF;
+    border-radius: 20px;
+    padding:40px 40px;
+    border:1px solid rgba(15,23,42,0.06); /*#607D8B 10%*/
+    backdrop-filter: blur(8px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+/* Cabeceras */
+h1, h2, h3{
+    margin:0 0 12px 0;
+    font-weight:700;
+    color:var(--pink);
+    font-family: var(--font-heading);
+}
+h1{ font-size:28px }
+h2{ font-size:20px }
+
+/* Texto y párrafos */
+p{ line-height:1.5; margin:8px 0 16px 0; color:var(--charcoal) }
+
+/* Formularios */
+form{ margin-top:16px; }
+label{ display:block; font-weight:600; margin-bottom:6px; color:var(--charcoal); font-family:var(--font-heading); }
+input[type="text"], input[type="password"], input[type="email"], textarea, select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--slate);
+    background:#fff;
+    color:var(--charcoal);
+    font-size:14px;
+    font-family:var(--font-sans);
+    transition:box-shadow .12s ease, border-color .12s ease;
+    box-shadow:none;
+}
+input::placeholder, textarea::placeholder{ color:#9aa0a4 }
+
+input:focus, textarea:focus, select:focus{
+    outline:none;
+    border-color:var(--pink);
+    box-shadow:0 6px 20px rgba(242,73,135,0.08);
+}
+
+/* Botones */
+.btn{
+    display:inline-block;
+    padding:10px 16px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    border:0;
+    transition: transform .08s ease, box-shadow .08s ease;
+    font-family:var(--font-sans);
+}
+.btn:active{ transform:translateY(1px) }
+
+/* Primary / Success / Outline */
+.btn-primary{
+    background:var(--pink);
+    color:var(--white);
+    box-shadow: 0 6px 18px rgba(242,73,135,0.16);
+}
+.btn-primary:hover{ filter:brightness(.98); box-shadow:0 10px 22px rgba(242,73,135,0.18) }
+
+.btn-success{
+    background:var(--lime);
+    color:var(--charcoal);
+    box-shadow: 0 6px 18px rgba(178,191,75,0.12);
+}
+.btn-success:hover{ filter:brightness(.98); box-shadow:0 10px 22px rgba(178,191,75,0.14) }
+
+.btn-outline{
+    background:transparent;
+    color:var(--slate);
+    border:1px solid var(--slate);
+}
+
+/* Mensajes */
+.message{
+    padding:12px 14px;
+    border-radius:8px;
+    margin:10px 0 16px 0;
+    font-weight:600;
+    font-family:var(--font-sans);
+}
+.message.success{
+    background:rgba(178,191,75,0.12);
+    color:var(--charcoal);
+    border-left:4px solid var(--lime);
+}
+.message.error{
+    background:rgba(242,73,135,0.08);
+    color:var(--charcoal);
+    border-left:4px solid var(--pink);
+}
+
+/* Tablas */
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    font-size:14px;
+    font-family:var(--font-sans);
+}
+thead th{
+    background:linear-gradient(180deg, #ffffffcc, #f6f6f6cc);
+    padding:10px;
+    border-bottom:1px solid rgba(0,0,0,0.06);
+    text-align:left;
+    color:var(--slate);
+    font-family:var(--font-heading);
+}
+tbody td{
+    padding:10px;
+    border-bottom:1px solid rgba(0,0,0,0.04);
+    font-family:var(--font-sans);
+}
+
+/* Tarjeta / detalle */
+.card{
+    padding:12px 14px;
+    border-radius:8px;
+    background: #fff;
+    border:1px solid rgba(0,0,0,0.03);
+    box-shadow: 0 6px 18px rgba(95,107,115,0.04);
+}
+
+/* Footer y enlaces */
+a{ color:var(--pink); text-decoration:none; font-family:var(--font-sans) }
+a:hover{ text-decoration:underline }
+
+/* Responsividad */
+@media (max-width:640px){
+    .container{ margin:20px; padding:16px }
+    h1{ font-size:20px }
+}
+
+/* Uso accesible de color: elementos destacados con contraste */
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:999px;
+    background:var(--slate);
+    color:var(--white);
+    font-weight:700;
+    font-size:12px;
+    font-family:var(--font-sans);
+}
