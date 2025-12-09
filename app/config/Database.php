@@ -180,17 +180,18 @@ class Database {
                     FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
                 );
             ");
+            $this->conn->exec("CREATE INDEX IF NOT EXISTS idx_alumnos_cursos_alumno_id ON alumnos_cursos(alumno_id);");
+            $this->conn->exec("CREATE INDEX IF NOT EXISTS idx_alumnos_cursos_curso_id ON alumnos_cursos(curso_id);");
 
-            // Si existe la columna curso_id en alumnos, migramos los valores a la tabla pivot
-            $hasCursoId = in_array('curso_id', $columns);
-            if ($hasCursoId) {
-                // Insertar pares únicos (si hay curso_id no null)
+            // Migrar datos existentes de alumnos.curso_id a alumnos_cursos si existe la columna
+            $stmtCols->execute();
+            $columns = $stmtCols->fetchAll(PDO::FETCH_COLUMN);
+            if (in_array('curso_id', $columns)) {
                 $this->conn->exec("
                     INSERT INTO alumnos_cursos (alumno_id, curso_id)
                     SELECT id, curso_id FROM alumnos WHERE curso_id IS NOT NULL
                     ON CONFLICT DO NOTHING;
                 ");
-                // opcional: se puede mantener curso_id para compatibilidad, o dejarlo ahí
                 error_log('[DB] Migrated alumnos.curso_id to alumnos_cursos pivot table.');
             }
 
