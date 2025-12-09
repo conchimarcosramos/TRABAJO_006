@@ -24,10 +24,10 @@ try {
     $totalAlumnos = (int)$totalStmt->fetchColumn();
     $totalPages = (int)max(1, ceil($totalAlumnos / $perPage));
 
-    // Select con JOIN, fallback a a.curso_nombre si c.nombre no existe
+    // Select con JOIN para agregar nombres de cursos usando string_agg
     $stmt = $pdo->prepare('
         SELECT a.id, a.nombre, a.email, a.telefono, a.mensaje, a.created_at,
-               COALESCE(string_agg(c.nombre, \', \') FILTER (WHERE c.nombre IS NOT NULL), \'\') AS cursos
+               STRING_AGG(c.nombre, \', \' ORDER BY c.nombre) FILTER (WHERE c.nombre IS NOT NULL) AS cursos
         FROM alumnos a
         LEFT JOIN alumnos_cursos ac ON ac.alumno_id = a.id
         LEFT JOIN cursos c ON c.id = ac.curso_id
@@ -71,7 +71,7 @@ try {
                     <th>Nombre</th>
                     <th>Email</th>
                     <th>Teléfono</th>
-                    <th>Curso</th>
+                    <th>Cursos matriculado</th>
                     <th>Registrado</th>
                 </tr>
             </thead>
@@ -81,8 +81,14 @@ try {
                     <td><?= htmlspecialchars((string)$alumno['id']) ?></td>
                     <td><?= htmlspecialchars($alumno['nombre']) ?></td>
                     <td><?= htmlspecialchars($alumno['email']) ?></td>
-                    <td><?= htmlspecialchars($alumno['telefono'] ?? '') ?></td>
-                    <td><?= htmlspecialchars($alumno['cursos'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($alumno['telefono'] ?? '—') ?></td>
+                    <td>
+                        <?php if (!empty($alumno['cursos'])): ?>
+                            <?= htmlspecialchars($alumno['cursos']) ?>
+                        <?php else: ?>
+                            <em style="color:#999;">Sin cursos</em>
+                        <?php endif; ?>
+                    </td>
                     <td><?= htmlspecialchars((string)$alumno['created_at']) ?></td>
                 </tr>
             <?php endforeach; ?>
