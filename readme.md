@@ -12,7 +12,7 @@
 // Modificaciones en el yml con nueva bd y usuario y passw.
 // BD = formulario_db
 // User = admin
-// Password = 123456789
+// Password = admin123
 
 // Modificaciones y revision en Database.php
 
@@ -34,7 +34,7 @@
 // Ejecutamos database, extension
 // 127.0.0.1 - servidor
 // admin -- user
-// 123456789 / admin123  -- password
+// admin123  -- password
 // formulario_db  -- base de datos
 
 .-----
