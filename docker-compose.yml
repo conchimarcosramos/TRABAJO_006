@@ -1,5 +1,3 @@
-
-
 services:
   web:
     image: php:8.2-apache

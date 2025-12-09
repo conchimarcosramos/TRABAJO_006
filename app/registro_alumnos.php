@@ -60,7 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'mensaje' => $mensaje ?: null,
                 'curso_id' => null
             ]);
-            $alumnoId = (int)$pdo->lastInsertId('alumnos_id_seq');
+            // PostgreSQL retorna el ID automáticamente con lastInsertId()
+            $alumnoId = (int)$pdo->lastInsertId();
+            if (!$alumnoId) {
+                // Fallback: usar RETURNING
+                throw new Exception('No se pudo obtener el ID del alumno insertado');
+            }
 
             if (!empty($curso_ids)) {
                 $pstmt = $pdo->prepare('INSERT INTO alumnos_cursos (alumno_id, curso_id) VALUES (:alumno_id, :curso_id) ON CONFLICT DO NOTHING');
@@ -73,9 +78,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: listar_alumnos.php');
             exit;
         } catch (Throwable $e) {
-            $pdo->rollBack();
-            error_log('[registro_alumnos] Transaction error: ' . $e->getMessage());
-            $_SESSION['error'] = 'Error interno al guardar el alumno.';
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $errorMsg = $e->getMessage();
+            $errorFile = $e->getFile();
+            $errorLine = $e->getLine();
+            
+            error_log("[registro_alumnos] Error: {$errorMsg} in {$errorFile}:{$errorLine}");
+            @file_put_contents(__DIR__ . '/logs/registro_alumnos_exceptions.log', 
+                date('c') . " - {$errorMsg}\nFile: {$errorFile}:{$errorLine}\nTrace:\n{$e->getTraceAsString()}\n\n", 
+                FILE_APPEND
+            );
+            
+            // TEMPORAL: mostrar error completo (QUITAR EN PRODUCCIÓN)
+            $_SESSION['error'] = "Error al guardar: " . htmlspecialchars($errorMsg) . " (línea {$errorLine})";
             header('Location: registro_alumnos.php');
             exit;
         }
