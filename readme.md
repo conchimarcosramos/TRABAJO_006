@@ -39,3 +39,8 @@
 
 .-----
 // SQLTools PostgreSQL/Redshift Driver
+
+-------------
+// git status -- comprobamos git
+// git commit -m "xxx" -- indicar mensaje git
+// git push -- subida commit y cambios git

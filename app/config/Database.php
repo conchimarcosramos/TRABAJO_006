@@ -18,7 +18,7 @@ class Database {
     public function __construct()
     {
         $this->host = getenv('DB_HOST') ?: 'formulario_db';
-        $this->port = getenv('DB_PORT') ?: '5432';
+        $this->port = getenv('DB_PORT') ?: '5434';
         $this->user = getenv('DB_USER') ?: $this->user;
         $this->password = getenv('DB_PASS') ?: $this->password;
         $this->db = getenv('DB_NAME') ?: $this->db;
