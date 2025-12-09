@@ -27,9 +27,12 @@ try {
     $totalPages = (int)max(1, ceil($totalCursos / $perPage));
 
     $stmt = $pdo->prepare('
-        SELECT id, nombre, descripcion, duracion_horas, fecha_creacion
-        FROM cursos
-        ORDER BY fecha_creacion DESC
+        SELECT c.id, c.nombre, c.descripcion, c.duracion_horas, c.fecha_creacion,
+               COUNT(ac.alumno_id) AS matriculados
+        FROM cursos c
+        LEFT JOIN alumnos_cursos ac ON ac.curso_id = c.id
+        GROUP BY c.id
+        ORDER BY c.fecha_creacion DESC
         LIMIT :limit OFFSET :offset
     ');
     $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
@@ -70,6 +73,7 @@ try {
                     <th>Descripción</th>
                     <th>Duración (h)</th>
                     <th>Creado</th>
+                    <th>Matriculados</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,6 +84,8 @@ try {
                     <td><?= htmlspecialchars((string)$curso['descripcion']) ?></td>
                     <td><?= htmlspecialchars((string)($curso['duracion_horas'] ?? '—')) ?></td>
                     <td><?= htmlspecialchars((string)$curso['fecha_creacion']) ?></td>
+                    <td><?= htmlspecialchars((string)$curso['matriculados']) ?></td>
+                    <td><a class="btn btn-outline" href="ver_alumnos_curso.php?curso_id=<?= htmlspecialchars((string)$curso['id']) ?>">Ver alumnos</a></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

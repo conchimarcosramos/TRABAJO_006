@@ -1,4 +1,4 @@
-- CREACIÓN DE PROJECTO
+- CREACIÓN DE PROYECTO
 
 - docker-compose.yml
 - app/
@@ -34,7 +34,7 @@
 // Ejecutamos database, extension
 // 127.0.0.1 - servidor
 // admin -- user
-// 123456789  -- password
+// 123456789 / admin123  -- password
 // formulario_db  -- base de datos
 
 .-----

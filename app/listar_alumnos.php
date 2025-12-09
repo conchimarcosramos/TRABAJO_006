@@ -26,9 +26,12 @@ try {
 
     // Select con JOIN, fallback a a.curso_nombre si c.nombre no existe
     $stmt = $pdo->prepare('
-        SELECT a.id, a.nombre, a.email, a.telefono, a.mensaje, COALESCE(c.nombre, a.curso_nombre) AS curso_nombre, a.created_at
+        SELECT a.id, a.nombre, a.email, a.telefono, a.mensaje, a.created_at,
+               COALESCE(string_agg(c.nombre, \', \') FILTER (WHERE c.nombre IS NOT NULL), \'\') AS cursos
         FROM alumnos a
-        LEFT JOIN cursos c ON a.curso_id = c.id
+        LEFT JOIN alumnos_cursos ac ON ac.alumno_id = a.id
+        LEFT JOIN cursos c ON c.id = ac.curso_id
+        GROUP BY a.id, a.nombre, a.email, a.telefono, a.mensaje, a.created_at
         ORDER BY a.created_at DESC
         LIMIT :limit OFFSET :offset
     ');
@@ -79,7 +82,7 @@ try {
                     <td><?= htmlspecialchars($alumno['nombre']) ?></td>
                     <td><?= htmlspecialchars($alumno['email']) ?></td>
                     <td><?= htmlspecialchars($alumno['telefono'] ?? '') ?></td>
-                    <td><?= htmlspecialchars($alumno['curso_nombre'] ?? '—') ?></td>
+                    <td><?= htmlspecialchars($alumno['cursos'] ?: '—') ?></td>
                     <td><?= htmlspecialchars((string)$alumno['created_at']) ?></td>
                 </tr>
             <?php endforeach; ?>

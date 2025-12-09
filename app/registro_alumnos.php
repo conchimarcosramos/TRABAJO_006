@@ -31,10 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $telefono = trim($_POST['telefono'] ?? '');
     $mensaje = trim($_POST['mensaje'] ?? '');
-    $curso_id = filter_input(INPUT_POST, 'curso_id', FILTER_VALIDATE_INT) ?: null;
+    $curso_ids_raw = $_POST['curso_ids'] ?? []; // puede venir como array o no
+    $curso_ids = [];
+    if (is_array($curso_ids_raw)) {
+        foreach ($curso_ids_raw as $cId) {
+            $c = filter_var($cId, FILTER_VALIDATE_INT);
+            if ($c !== false && $c !== null) $curso_ids[] = (int)$c;
+        }
+    }
 
     @mkdir(__DIR__ . '/logs', 0755, true);
-    file_put_contents(__DIR__ . '/logs/registro_alumnos_post.log', date('c') . ' - POST: ' . json_encode(compact('nombre','email','telefono','mensaje','curso_id')) . PHP_EOL, FILE_APPEND);
+    file_put_contents(__DIR__ . '/logs/registro_alumnos_post.log', date('c') . ' - POST: ' . json_encode(compact('nombre','email','telefono','mensaje','curso_ids')) . PHP_EOL, FILE_APPEND);
 
     if ($nombre === '' || mb_strlen($nombre) < 2) { $errors[] = 'El nombre del alumno debe tener al menos 2 caracteres.'; }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = 'Introduce un email válido.'; }
@@ -42,47 +49,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         $db = new Database();
         $pdo = $db->getConnection();
-        if (!$pdo) {
-            file_put_contents(__DIR__ . '/logs/registro_alumnos_errors.log', date('c') . " - No DB connection\n", FILE_APPEND);
-            $_SESSION['error'] = 'Error de conexión con la base de datos.'; header('Location: registro_alumnos.php'); exit;
-        }
-
         try {
-            // Comprueba duplicado por email
-            $stmt = $pdo->prepare('SELECT id FROM alumnos WHERE email = :email LIMIT 1');
-            $stmt->execute(['email' => $email]);
-            if ($stmt->fetch()) {
-                $_SESSION['error'] = 'El email ya está registrado para otro alumno.';
-                header('Location: registro_alumnos.php'); exit;
-            }
-
-            // Validar curso_id (si viene)
-            if ($curso_id !== null) {
-                $cstmt = $pdo->prepare('SELECT id FROM cursos WHERE id = :id LIMIT 1');
-                $cstmt->execute(['id' => $curso_id]);
-                if (!$cstmt->fetch()) $curso_id = null;
-            }
-
-            // Insert con campos coincidentes con DB
+            $pdo->beginTransaction();
             $istmt = $pdo->prepare('INSERT INTO alumnos (nombre, email, telefono, mensaje, curso_id) VALUES (:nombre, :email, :telefono, :mensaje, :curso_id)');
-            $ok = $istmt->execute(['nombre' => $nombre, 'email' => $email, 'telefono' => $telefono ?: null, 'mensaje' => $mensaje ?: null, 'curso_id' => $curso_id]);
+            // Insertamos con curso_id NULL (ya que mantuvimos la columna para compatibilidad)
+            $istmt->execute([
+                'nombre' => $nombre,
+                'email' => $email,
+                'telefono' => $telefono ?: null,
+                'mensaje' => $mensaje ?: null,
+                'curso_id' => null
+            ]);
+            $alumnoId = (int)$pdo->lastInsertId('alumnos_id_seq');
 
-            if ($ok && $istmt->rowCount() > 0) {
-                file_put_contents(__DIR__ . '/logs/registro_alumnos_success.log', date('c') . ' - Insert OK: ' . $email . PHP_EOL, FILE_APPEND);
-                $_SESSION['success'] = 'Alumno registrado correctamente.';
-                header('Location: listar_alumnos.php'); exit;
-            } else {
-                $err = $istmt->errorInfo();
-                file_put_contents(__DIR__ . '/logs/registro_alumnos_errors.log', date('c') . ' - Insert failed: ' . json_encode($err) . PHP_EOL, FILE_APPEND);
-                error_log('[registro_alumnos] Insert failed: ' . json_encode($err));
-                $_SESSION['error'] = 'Error interno al guardar el alumno.';
-                header('Location: registro_alumnos.php'); exit;
+            if (!empty($curso_ids)) {
+                $pstmt = $pdo->prepare('INSERT INTO alumnos_cursos (alumno_id, curso_id) VALUES (:alumno_id, :curso_id) ON CONFLICT DO NOTHING');
+                foreach ($curso_ids as $cid) {
+                    $pstmt->execute(['alumno_id' => $alumnoId, 'curso_id' => $cid]);
+                }
             }
-        } catch (PDOException $e) {
-            file_put_contents(__DIR__ . '/logs/registro_alumnos_exceptions.log', date('c') . ' - ' . $e->getMessage() . PHP_EOL, FILE_APPEND);
-            error_log('[registro_alumnos] PDOException: ' . $e->getMessage());
+            $pdo->commit();
+            $_SESSION['success'] = 'Alumno registrado correctamente.';
+            header('Location: listar_alumnos.php');
+            exit;
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            error_log('[registro_alumnos] Transaction error: ' . $e->getMessage());
             $_SESSION['error'] = 'Error interno al guardar el alumno.';
-            header('Location: registro_alumnos.php'); exit;
+            header('Location: registro_alumnos.php');
+            exit;
         }
     }
 
@@ -133,9 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="mensaje">Mensaje (opcional):</label>
             <textarea id="mensaje" name="mensaje" rows="3"></textarea>
 
-            <label for="curso_id">Curso (opcional):</label>
-            <select id="curso_id" name="curso_id">
-                <option value="">-- ninguno --</option>
+            <label for="curso_ids">Cursos (mantén pulsada Ctrl/Cmd para seleccionar varios):</label>
+            <select id="curso_ids" name="curso_ids[]" multiple size="4">
                 <?php foreach ($cursos as $c):
                     $cursoId = isset($c['id']) ? (string)$c['id'] : '';
                     $cursoNombre = isset($c['nombre']) ? (string)$c['nombre'] : '';

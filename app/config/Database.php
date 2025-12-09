@@ -169,6 +169,31 @@ class Database {
                 }
             }
 
+            // Tabla pivot para relación many-to-many: alumnos <-> cursos
+            $this->conn->exec("
+                CREATE TABLE IF NOT EXISTS alumnos_cursos (
+                    alumno_id INTEGER NOT NULL,
+                    curso_id INTEGER NOT NULL,
+                    fecha_matricula TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (alumno_id, curso_id),
+                    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
+                );
+            ");
+
+            // Si existe la columna curso_id en alumnos, migramos los valores a la tabla pivot
+            $hasCursoId = in_array('curso_id', $columns);
+            if ($hasCursoId) {
+                // Insertar pares únicos (si hay curso_id no null)
+                $this->conn->exec("
+                    INSERT INTO alumnos_cursos (alumno_id, curso_id)
+                    SELECT id, curso_id FROM alumnos WHERE curso_id IS NOT NULL
+                    ON CONFLICT DO NOTHING;
+                ");
+                // opcional: se puede mantener curso_id para compatibilidad, o dejarlo ahí
+                error_log('[DB] Migrated alumnos.curso_id to alumnos_cursos pivot table.');
+            }
+
             // Ensure indexes
             $this->conn->exec("CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);");
             $this->conn->exec("CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);");
