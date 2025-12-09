@@ -26,12 +26,13 @@ try {
     $totalCursos = (int)$totalStmt->fetchColumn();
     $totalPages = (int)max(1, ceil($totalCursos / $perPage));
 
+    // JOIN con alumnos_cursos para contar matriculados
     $stmt = $pdo->prepare('
         SELECT c.id, c.nombre, c.descripcion, c.duracion_horas, c.fecha_creacion,
                COUNT(ac.alumno_id) AS matriculados
         FROM cursos c
         LEFT JOIN alumnos_cursos ac ON ac.curso_id = c.id
-        GROUP BY c.id
+        GROUP BY c.id, c.nombre, c.descripcion, c.duracion_horas, c.fecha_creacion
         ORDER BY c.fecha_creacion DESC
         LIMIT :limit OFFSET :offset
     ');
@@ -72,8 +73,9 @@ try {
                     <th>Nombre</th>
                     <th>Descripción</th>
                     <th>Duración (h)</th>
-                    <th>Creado</th>
                     <th>Matriculados</th>
+                    <th>Creado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,11 +83,17 @@ try {
                 <tr>
                     <td><?= htmlspecialchars((string)$curso['id']) ?></td>
                     <td><?= htmlspecialchars((string)$curso['nombre']) ?></td>
-                    <td><?= htmlspecialchars((string)$curso['descripcion']) ?></td>
+                    <td><?= htmlspecialchars((string)($curso['descripcion'] ?? '—')) ?></td>
                     <td><?= htmlspecialchars((string)($curso['duracion_horas'] ?? '—')) ?></td>
+                    <td style="text-align:center;">
+                        <strong><?= htmlspecialchars((string)$curso['matriculados']) ?></strong>
+                    </td>
                     <td><?= htmlspecialchars((string)$curso['fecha_creacion']) ?></td>
-                    <td><?= htmlspecialchars((string)$curso['matriculados']) ?></td>
-                    <td><a class="btn btn-outline" href="ver_alumnos_curso.php?curso_id=<?= htmlspecialchars((string)$curso['id']) ?>">Ver alumnos</a></td>
+                    <td style="text-align:center;">
+                        <a class="btn btn-outline" href="ver_alumnos_curso.php?curso_id=<?= htmlspecialchars((string)$curso['id']) ?>">
+                            Ver alumnos
+                        </a>
+                    </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
