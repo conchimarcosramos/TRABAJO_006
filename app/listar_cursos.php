@@ -28,7 +28,9 @@ try {
 
     // JOIN con alumnos_cursos para contar matriculados
     $stmt = $pdo->prepare('
-        SELECT c.id, c.nombre, c.descripcion, c.duracion_horas, c.fecha_creacion,
+        SELECT c.id, c.nombre, c.descripcion, c.duracion_horas, 
+               c.fecha_creacion,
+               TO_CHAR(c.fecha_creacion, \'DD-MM-YYYY\') AS fecha_formateada,
                COUNT(ac.alumno_id) AS matriculados
         FROM cursos c
         LEFT JOIN alumnos_cursos ac ON ac.curso_id = c.id
@@ -88,7 +90,7 @@ try {
                     <td style="text-align:center;">
                         <strong><?= htmlspecialchars((string)$curso['matriculados']) ?></strong>
                     </td>
-                    <td><?= htmlspecialchars((string)$curso['fecha_creacion']) ?></td>
+                    <td><?= htmlspecialchars($curso['fecha_formateada']) ?></td>
                     <td style="text-align:center;">
                         <a class="btn btn-outline" href="ver_alumnos_curso.php?curso_id=<?= htmlspecialchars((string)$curso['id']) ?>">
                             Ver alumnos

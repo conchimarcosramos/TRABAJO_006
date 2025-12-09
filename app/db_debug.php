@@ -25,6 +25,18 @@ try {
             }
         }
     }
+// Si muestra datos de ejemplo, añade formato:
+$stmt = $pdo->query("
+    SELECT id, nombre, email, 
+           TO_CHAR(created_at, 'DD-MM-YYYY') AS fecha 
+    FROM alumnos 
+    LIMIT 5
+");
+    $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo "Datos de ejemplo de la tabla alumnos:\n";
+    foreach ($alumnos as $alumno) {
+        echo "  - ID: {$alumno['id']}, Nombre: {$alumno['nombre']}, Email: {$alumno['email']}, Fecha: {$alumno['fecha']}\n";
+    }
 } catch (Throwable $e) {
     echo 'ERROR: ' . $e->getMessage() . "\n";
     error_log('[db_debug] ' . $e->getMessage());

@@ -37,7 +37,9 @@ try {
 
     // Obtener alumnos matriculados en el curso
     $alumnosStmt = $pdo->prepare('
-        SELECT a.id, a.nombre, a.email, a.telefono, ac.fecha_matricula
+        SELECT a.id, a.nombre, a.email, a.telefono, 
+               ac.fecha_matricula,
+               TO_CHAR(ac.fecha_matricula, \'DD-MM-YYYY\') AS fecha_matricula_formateada
         FROM alumnos a
         INNER JOIN alumnos_cursos ac ON ac.alumno_id = a.id
         WHERE ac.curso_id = :curso_id
@@ -96,7 +98,7 @@ try {
                     <td><?= htmlspecialchars($alumno['nombre']) ?></td>
                     <td><?= htmlspecialchars($alumno['email']) ?></td>
                     <td><?= htmlspecialchars($alumno['telefono'] ?? '—') ?></td>
-                    <td><?= htmlspecialchars((string)$alumno['fecha_matricula']) ?></td>
+                    <td><?= htmlspecialchars($alumno['fecha_matricula_formateada']) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

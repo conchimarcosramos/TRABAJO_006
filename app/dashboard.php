@@ -7,6 +7,19 @@ if (empty($_SESSION['username'])) {
     header('Location: login.php');
     exit;
 }
+
+// Busca queries que seleccionen fechas y añade TO_CHAR
+// Ejemplo:
+// SELECT ..., TO_CHAR(created_at, 'DD-MM-YYYY') AS fecha_formateada FROM ...
+
+// Si hay consultas con fechas, busca y reemplaza por TO_CHAR
+// Ejemplo si existe:
+$stmt = $pdo->query("
+    SELECT u.username, TO_CHAR(u.created_at, 'DD-MM-YYYY') AS fecha_registro
+    FROM users u
+    ORDER BY u.created_at DESC
+    LIMIT 5
+");
 ?>
 <!DOCTYPE html>
 <html lang="es">

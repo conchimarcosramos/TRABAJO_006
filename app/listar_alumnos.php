@@ -26,7 +26,9 @@ try {
 
     // Select con JOIN para agregar nombres de cursos usando string_agg
     $stmt = $pdo->prepare('
-        SELECT a.id, a.nombre, a.email, a.telefono, a.mensaje, a.created_at,
+        SELECT a.id, a.nombre, a.email, a.telefono, a.mensaje, 
+               a.created_at,
+               TO_CHAR(a.created_at, \'DD-MM-YYYY\') AS fecha_registro,
                STRING_AGG(c.nombre, \', \' ORDER BY c.nombre) FILTER (WHERE c.nombre IS NOT NULL) AS cursos
         FROM alumnos a
         LEFT JOIN alumnos_cursos ac ON ac.alumno_id = a.id
@@ -89,7 +91,7 @@ try {
                             <em style="color:#999;">Sin cursos</em>
                         <?php endif; ?>
                     </td>
-                    <td><?= htmlspecialchars((string)$alumno['created_at']) ?></td>
+                    <td><?= htmlspecialchars($alumno['fecha_registro']) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

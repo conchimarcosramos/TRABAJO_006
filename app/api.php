@@ -81,6 +81,28 @@ try {
             }
             break;
 
+        // Listar alumnos
+        case 'list_alumnos':
+            $stmt = $pdo->query("
+                SELECT a.id, a.nombre, a.email, 
+                       TO_CHAR(a.created_at, 'DD-MM-YYYY') AS fecha_registro
+                FROM alumnos a 
+                ORDER BY a.created_at DESC
+            ");
+            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            break;
+
+        // Listar cursos
+        case 'list_cursos':
+            $stmt = $pdo->query("
+                SELECT c.id, c.nombre, c.descripcion,
+                       TO_CHAR(c.fecha_creacion, 'DD-MM-YYYY') AS fecha_creacion
+                FROM cursos c 
+                ORDER BY c.fecha_creacion DESC
+            ");
+            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            break;
+
         // Acción no encontrada
         default:
             http_response_code(400);
@@ -101,4 +123,7 @@ try {
         'error' => $e->getMessage()
     ]);
 }
+
+// En las queries que devuelvan fechas, añade:
+// TO_CHAR(fecha_campo, 'DD-MM-YYYY') AS fecha_formateada
 ?>
